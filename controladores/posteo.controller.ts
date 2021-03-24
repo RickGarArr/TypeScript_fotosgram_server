@@ -1,18 +1,37 @@
 import { Request, Response } from "express";
-import multer, { StorageEngine } from 'multer';
-import saveImages from "../helpers/SaveImages";
-
-import IRequest from "../interfaces/IRequest";
+import sendError from "../helpers/SendError";
+import { IRequest, IRequestFile } from "../interfaces/IRequest";
 import { Posteo } from "../modelos/posteo.model";
+import moment from 'moment';
+import borrarCarpeta from "../helpers/EliminarDirectorio";
+import path from 'path';
 
 async function posteo(req: Request, res: Response) {
-    saveImages(req, res, (req as IRequest).id);
-    res.json({
-        ok: true
-    })
+    let imagenes = (req as IRequestFile).files.map((file: Express.Multer.File) => {
+        return `${(req as IRequestFile).fecha}/${file.filename}`;
+    });
+    try {
+        const posteoDB = await Posteo.create({
+            usuario: (req as IRequest).id,
+            imagenes,
+            coordenadas: req.body.coordenadas,
+            mensaje: req.body.mensaje
+        });
+        res.json({
+            ok: true,
+            posteoDB
+        });
+    } catch(err) {
+        sendError(res, 'Problemas al subir la imagen');
+        const carpetaABorrar = path.resolve(__dirname, `../uploads/${(req as IRequest).id}/${(req as IRequestFile).fecha}`);
+        borrarCarpeta(carpetaABorrar);
+        console.log(err);
+    }
 }
 
-async function getAll(req: Request, res: Response) {
+async function getAll(req: Request, res: Response) {    
+    console.log(moment().format('YYYY_MM_DD_hh'));
+    
     const page = Number(req.query.page) || 0;    
     try {
         const allPost = await Posteo.find()
@@ -31,18 +50,3 @@ async function getAll(req: Request, res: Response) {
 }
 
 export { posteo, getAll }
-
-/*
-const body = req.body;
-body.usuario = (req as IRequest).id;
-
-try {
-    const postDB = await Posteo.create(body);
-    res.json({
-        ok: true,
-        postDB
-    });
-} catch (err) {
-    console.log(err);
-}
-*/

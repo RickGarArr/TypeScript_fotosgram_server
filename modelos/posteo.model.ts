@@ -12,7 +12,8 @@ const posteoSchema = new Schema<IPosteo>({
         type: String
     }],
     coordenadas: {
-        type: String
+        type: String,
+        default: ""
     },
     usuario: {
         type: Schema.Types.ObjectId,

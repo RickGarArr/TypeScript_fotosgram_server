@@ -1,9 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import sendError from '../helpers/SendError';
+import path from 'path';
+import fs from 'fs';
+import generarNombreUnico from '../helpers/GenerarNombreUnico';
+import { IRequest, IRequestFile } from '../interfaces/IRequest';
+import moment from 'moment';
 
 export default function imageMiddleware(req: Request, res: Response, next: NextFunction) {
-    let upload = multer({fileFilter: imageFilter }).array('images', 5);
+    (req as IRequestFile).fecha = moment().format('DD_MM_YYYY_hh_mm_ss');
+    let upload = multer({storage: storage, fileFilter: imageFilter}).array('images', 5);
 
     upload(req, res, function(err: any) {
         if (err instanceof multer.MulterError) {
@@ -17,9 +23,21 @@ export default function imageMiddleware(req: Request, res: Response, next: NextF
     });    
 }
 
+const storage = multer.diskStorage({
+    destination: function (req, file, callback) {
+        const pathToSave = path.resolve(__dirname, `../uploads/${(req as IRequest).id}/${(req as IRequestFile).fecha}`);
+        if(!fs.existsSync(pathToSave)) {
+            fs.mkdirSync(pathToSave, {recursive: true});
+        }
+        callback(null, pathToSave);
+    },
+    filename: function(req, file, callback) {        
+        const nombreUnico = generarNombreUnico(file.originalname);
+        callback(null, nombreUnico);
+    }
+});
+
 const imageFilter = function(req: any, file: Express.Multer.File , cb: FileFilterCallback) {
-    console.log(file.originalname);
-    
     const ext = file.originalname.split('.')[file.originalname.split('.').length - 1].toLocaleLowerCase();
     const extValidas = ['png', 'jpg', 'jpeg', 'gift'];
     if (extValidas.includes(ext)) {
@@ -28,7 +46,3 @@ const imageFilter = function(req: any, file: Express.Multer.File , cb: FileFilte
         cb(new Error('Error, tipo de archivo no valido'));
     }
 };
-
-interface IRequest extends Request {
-    errorValidacionArchivo: string;
-}
