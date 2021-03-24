@@ -2,7 +2,7 @@ import { Response, Request } from 'express';
 import bcrypt from 'bcrypt';
 import { Usuario } from '../modelos/usuario.model';
 import JWToken from '../helpers/JWToken';
-import IRequest from '../interfaces/IRequest';
+import {IRequest} from '../interfaces/IRequest';
 
 async function crear(req: Request, res: Response){
     try {
