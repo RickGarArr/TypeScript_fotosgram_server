@@ -2,15 +2,15 @@ import { Response, Request } from 'express';
 import bcrypt from 'bcrypt';
 import { Usuario } from '../modelos/usuario.model';
 import JWToken from '../helpers/JWToken';
+import IRequest from '../interfaces/IRequest';
 
-const crear = async (req: Request, res: Response) => {
-    const usuario = {
-        nombre: req.body.nombre,
-        email: req.body.email,
-        password: bcrypt.hashSync(req.body.password, bcrypt.genSaltSync()),
-    }
+async function crear(req: Request, res: Response){
     try {
-        const usuarioDB = await Usuario.create(usuario);
+        const usuarioDB = await Usuario.create({
+            nombre: req.body.nombre,
+            email: req.body.email,
+            password: bcrypt.hashSync(req.body.password, bcrypt.genSaltSync())
+        });
         const token = await JWToken.getJwToken(usuarioDB.id);
         res.json({
             token
@@ -22,7 +22,7 @@ const crear = async (req: Request, res: Response) => {
     }
 }
 
-const login = async (req: Request, res: Response) => {
+async function login(req: Request, res: Response){
     try {
         const usuarioDB = await Usuario.findOne({email: req.body.email});
         if (!usuarioDB) {
@@ -48,24 +48,22 @@ const login = async (req: Request, res: Response) => {
     }
 }
 
-const update = async (req: any, res: Response) => {
-    const { nombre, email, avatar } = req.body;
-    const userUpdate = {
-        nombre
-    }
-
+async function update(req: Request, res: Response){
+    // retirar la propiedad password para que no se cambie
+    const { password, ...usuario } = req.query;
     try {
-        const usuarioBD = await Usuario.findById(req.id, userUpdate, {new: true});
+        const usuarioDB = await Usuario.findByIdAndUpdate((req as IRequest).id, usuario, { new: true });
+        const token = await JWToken.getJwToken(usuarioDB?.id);
         res.json({
-            usuarioBD
+            token
         });
-    } catch(error) {
-        res.json({
+    } catch(err) {
+        res.status(500).json({
             ok: false,
-            msg: 'NO Existe El Uusuario'
+            msg: 'error al actualizar el usuario'
         })
+        console.log(err);
     }
-
 }
 
 export {crear, login, update};

@@ -1,15 +1,12 @@
-import bcrypt from 'bcrypt';
 import * as dotenv from 'dotenv';
 dotenv.config();
-
+import express from 'express';
 import Server from './clases/Server';
-import bodyParser from 'body-parser';
 import todasRutas from './rutas/todas.routes';
 import conexionDB from './clases/Conexion';
 
-Server.app.use(bodyParser.urlencoded({extended: true}));
-Server.app.use(bodyParser.json());
-
+Server.app.use(express.urlencoded({extended: true}));
+Server.app.use(express.json());
 Server.app.use(todasRutas);
 
 conexionDB().then(resp => {

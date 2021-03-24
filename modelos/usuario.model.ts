@@ -22,7 +22,7 @@ const usuarioSchema = new Schema<IUsuario>({
     },
 }, {collection: 'usuarios'});
 
-usuarioSchema.methods.compararPasswords = function (password: string = ""): boolean {
+usuarioSchema.methods.compararPasswords = function(password: string = ""): boolean {
     return bcrypt.compareSync(password, this.password);
 }
 

@@ -19,10 +19,6 @@ usuarioRoutes.post('/login', [
     validarCampos
 ], login)
 
-usuarioRoutes.put('/update', [
-    validarToken,
-    check('nombre', 'El Nombre es necesario').notEmpty(),
-    validarCampos
-], update);
+usuarioRoutes.put('/update', validarToken, update);
 
 export default usuarioRoutes;

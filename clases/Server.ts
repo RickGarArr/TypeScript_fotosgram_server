@@ -15,7 +15,6 @@ export default class Server {
             });
         } catch(error) {
             console.log('error al conectar a base de datos');
-            
         }
     }
 
