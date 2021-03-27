@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { check } from 'express-validator';
-import {crear, login, update} from '../controladores/usuario.controller';
+import {crear, login, update, get} from '../controladores/usuario.controller';
 import validarCampos from '../middlewares/validarCampos';
 import validarToken from '../middlewares/validarToken';
 
@@ -17,8 +17,10 @@ usuarioRoutes.post('/login', [
     check('email', 'El Email es necesario').isEmail(),
     check('password', 'El Password Es Necesario').notEmpty(),
     validarCampos
-], login)
+], login);
 
 usuarioRoutes.put('/update', validarToken, update);
+
+usuarioRoutes.get('/', validarToken, get);
 
 export default usuarioRoutes;

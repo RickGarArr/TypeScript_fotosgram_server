@@ -26,4 +26,10 @@ usuarioSchema.methods.compararPasswords = function(password: string = ""): boole
     return bcrypt.compareSync(password, this.password);
 }
 
+usuarioSchema.methods.toJSON = function(){
+    const { __v, _id, ...object } = this.toObject();
+    object.id = _id;
+    return object;
+};
+
 export const Usuario = model('usuarios', usuarioSchema);

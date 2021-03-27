@@ -3,19 +3,26 @@ import bcrypt from 'bcrypt';
 import { Usuario } from '../modelos/usuario.model';
 import JWToken from '../helpers/JWToken';
 import {IRequest} from '../interfaces/IRequest';
+import sendError from '../helpers/SendError';
 
 async function crear(req: Request, res: Response){
     try {
         const usuarioDB = await Usuario.create({
             nombre: req.body.nombre,
             email: req.body.email,
-            password: bcrypt.hashSync(req.body.password, bcrypt.genSaltSync())
+            password: bcrypt.hashSync(req.body.password, bcrypt.genSaltSync()),
+            avatar: req.body.avatar
         });
         const token = await JWToken.getJwToken(usuarioDB.id);
         res.json({
             token
         });
     } catch (error) {
+        if (error.name === 'MongoError') {
+            if (error.code === 11000) {
+                return sendError(res, 'El email ya está registrado');
+            }
+        }
         res.status(500).json({
             msg: 'error al crear el usuario'
         });
@@ -26,15 +33,10 @@ async function login(req: Request, res: Response){
     try {
         const usuarioDB = await Usuario.findOne({email: req.body.email});
         if (!usuarioDB) {
-            return res.json({
-                msg: 'No hay usuario con ese email'
-            });
+            return sendError(res, 'Email es Incorrecto');
         }
-
         if(!usuarioDB.compararPasswords(req.body.password)) {
-            return res.json({
-                msg: 'Contraseña Invaalida'
-            });
+            return sendError(res, 'Contraseña Incorrecta');
         }
         const token = await JWToken.getJwToken(usuarioDB.id);
         res.json({
@@ -66,4 +68,17 @@ async function update(req: Request, res: Response){
     }
 }
 
-export {crear, login, update};
+async function get(req: Request, res: Response) {
+    try {
+        const usuarioDB = await Usuario.findById((req as IRequest).id);
+        res.json({
+            ok: true,
+            usuarioDB
+        });
+    } catch (err) {
+        sendError(res, 'error al encontrar el usuario');
+    }
+    
+}
+
+export {crear, login, update, get};

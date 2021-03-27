@@ -8,9 +8,7 @@ import { IRequest, IRequestFile } from '../interfaces/IRequest';
 import moment from 'moment';
 
 export default function imageMiddleware(req: Request, res: Response, next: NextFunction) {
-    (req as IRequestFile).fecha = moment().format('DD_MM_YYYY_hh_mm_ss');
     let upload = multer({storage: storage, fileFilter: imageFilter}).array('images', 5);
-
     upload(req, res, function(err: any) {
         if (err instanceof multer.MulterError) {
             return sendError(res, err.message);
@@ -25,7 +23,7 @@ export default function imageMiddleware(req: Request, res: Response, next: NextF
 
 const storage = multer.diskStorage({
     destination: function (req, file, callback) {
-        const pathToSave = path.resolve(__dirname, `../uploads/${(req as IRequest).id}/${(req as IRequestFile).fecha}`);
+        const pathToSave = path.resolve(__dirname, `../uploads/${(req as IRequest).id}`);
         if(!fs.existsSync(pathToSave)) {
             fs.mkdirSync(pathToSave, {recursive: true});
         }
